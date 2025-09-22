@@ -32,10 +32,14 @@ class Value:
         return self * other
     def __truediv__(self, other):
         return self * other ** -1
+    def __rtruediv__(self, other):
+       return Value(other) / self
     def __neg__(self):
         return self * -1
     def __sub__(self, other):
         return self + (-other)
+    def __rsub__(self, other):
+        return Value(other) - self
     def __pow__(self, other):
         assert isinstance(other, (int, float)), "only supporting int/float powers for now"
         out = Value(self.data ** other, (self,), f'**{other}')
@@ -59,6 +63,16 @@ class Value:
             self.grad += out.data * out.grad
         out._backward = _backward
         return out
+    
+    def log(self):
+        x = self.data
+        out = Value(math.log(x), (self,), 'log')
+        def _backward():
+            # d/dx log(x) = 1/x
+            self.grad += (1 / x) * out.grad
+        out._backward = _backward
+        return out
+    
     
     def backward(self):
         topo = []
